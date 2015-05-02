@@ -35,13 +35,17 @@ import android.text.format.Time;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
+import android.widget.ImageView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataItemBuffer;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 
@@ -54,7 +58,7 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
         DataApi.DataListener {
 
     static final String TAG = "ImageStreamingWatchFace";
-    private static final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(1);
+    private static final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(10);
 
     GoogleApiClient mGoogleApiClient;
     Bitmap mBackgroundBitmap;
@@ -77,6 +81,28 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
         }
     }
 
+    private void setImageFromCache() {
+        Wearable.DataApi.getDataItems(mGoogleApiClient).setResultCallback(new ResultCallback<DataItemBuffer>() {
+            @Override
+            public void onResult(DataItemBuffer dataItems) {
+                for (final DataItem dataItem : dataItems) {
+                    if (dataItem.getUri().getPath().equals("/image")) {
+                        DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
+                        Asset image = dataMapItem.getDataMap().getAsset("image");
+
+                        Wearable.DataApi.getFdForAsset(mGoogleApiClient, image).setResultCallback(new ResultCallback<DataApi.GetFdForAssetResult>() {
+                            @Override
+                            public void onResult(DataApi.GetFdForAssetResult getFdForAssetResult) {
+                                InputStream assetInputStream = getFdForAssetResult.getInputStream();
+                                mBackgroundBitmap = BitmapFactory.decodeStream(assetInputStream);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    }
+
     @Override
     public Engine onCreateEngine() {
         mGoogleApiClient = new GoogleApiClient
@@ -86,6 +112,8 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
                 .addApi(Wearable.API)
                 .build();
         mGoogleApiClient.connect();
+
+        setImageFromCache();
 
         return new Engine();
     }

@@ -4,23 +4,37 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataItemBuffer;
+import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends Activity
@@ -42,6 +56,7 @@ public class MainActivity extends Activity
                 .addOnConnectionFailedListener(this)
                 .addApi(Wearable.API)
                 .build();
+
         startService(new Intent(MainActivity.this, ImageLoaderService.class));
     }
 
@@ -88,9 +103,41 @@ public class MainActivity extends Activity
         return super.onOptionsItemSelected(item);
     }
 
+    private void setImageFromCache(final DataItem dataItem) {
+        DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
+        Asset image = dataMapItem.getDataMap().getAsset("image");
+
+        Wearable.DataApi.getFdForAsset(mGoogleApiClient, image).setResultCallback(new ResultCallback<DataApi.GetFdForAssetResult>() {
+            @Override
+            public void onResult(DataApi.GetFdForAssetResult getFdForAssetResult) {
+                InputStream assetInputStream = getFdForAssetResult.getInputStream();
+                final Bitmap bitmap = BitmapFactory.decodeStream(assetInputStream);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ImageView imageView = (ImageView) findViewById(R.id.imageView);
+                        imageView.setImageBitmap(bitmap);
+                    }
+                });
+            }
+        });
+    }
+
     @Override
     public void onConnected(Bundle bundle) {
         Wearable.DataApi.addListener(mGoogleApiClient, this);
+
+        Wearable.DataApi.getDataItems(mGoogleApiClient).setResultCallback(new ResultCallback<DataItemBuffer>() {
+            @Override
+            public void onResult(DataItemBuffer dataItems) {
+                for (final DataItem dataItem : dataItems) {
+                    if (dataItem.getUri().getPath().equals("/image")) {
+                        setImageFromCache(dataItem);
+                    }
+                }
+            }
+        });
     }
 
     @Override
