@@ -18,10 +18,13 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
@@ -30,34 +33,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends Activity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         DataApi.DataListener {
-
-    private class ImageLoaderAsyncTask extends AsyncTask<String, Void, Bitmap> {
-        public ImageLoaderAsyncTask() {}
-
-        @Override
-        protected Bitmap doInBackground(String... url) {
-            try {
-                InputStream stream = new URL(url[0]).openStream();
-                return BitmapFactory.decodeStream(stream);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            if (bitmap != null) {
-                ImageView imageView = (ImageView)findViewById(R.id.imageView);
-                imageView.setImageBitmap(bitmap);
-            }
-        }
-    }
 
     GoogleApiClient mGoogleApiClient;
 
@@ -72,16 +53,27 @@ public class MainActivity extends Activity
                 .addOnConnectionFailedListener(this)
                 .addApi(Wearable.API)
                 .build();
-        mGoogleApiClient.connect();
+        startService(new Intent(MainActivity.this, ImageLoaderService.class));
+    }
 
-//        startService(new Intent(MainActivity.this, ImageLoaderService.class));
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+        super.onStop();
     }
     
     @Override
     protected void onDestroy() {
         super.onDestroy();
 
-        mGoogleApiClient.disconnect();
         stopService(new Intent(MainActivity.this, ImageLoaderService.class));
         Log.d("TAG", "Stopped service");
     }
@@ -110,14 +102,13 @@ public class MainActivity extends Activity
 
     @Override
     public void onConnected(Bundle bundle) {
-        Toast.makeText(getApplicationContext(), "connected!", Toast.LENGTH_LONG).show();
+        Log.d("MainActivity", "Connected");
         Wearable.DataApi.addListener(mGoogleApiClient, this);
-
-        startService(new Intent(MainActivity.this, ImageLoaderService.class));
     }
 
     @Override
     public void onConnectionSuspended(int i) {
+        Log.d("MainActivity", "Suspended");
         Wearable.DataApi.removeListener(mGoogleApiClient, this);
     }
 
@@ -126,15 +117,16 @@ public class MainActivity extends Activity
         Log.d("TAG", "data changed!!!");
 
         for (DataEvent event : dataEvents) {
-            if (event.getType() == DataEvent.TYPE_DELETED) {
-                Log.d("TAG", "DataItem deleted: " + event.getDataItem().getUri());
-            }
-            else if (event.getType() == DataEvent.TYPE_CHANGED) {
+            if (event.getType() == DataEvent.TYPE_CHANGED) {
                 Log.d("TAG", "DataItem changed: " + event.getDataItem().getUri());
 
-                DataMap dataMap = DataMap.fromByteArray(event.getDataItem().getData());
-                byte[] data = dataMap.getByteArray("image");
-                final Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, new BitmapFactory.Options());
+                DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
+                Asset image = dataMapItem.getDataMap().getAsset("image");
+                if (image == null) {
+                    return;
+                }
+                InputStream assetInputStream = Wearable.DataApi.getFdForAsset(mGoogleApiClient, image).await().getInputStream();
+                final Bitmap bitmap = BitmapFactory.decodeStream(assetInputStream);
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -149,14 +141,9 @@ public class MainActivity extends Activity
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.d("TAG", "Error: connection failed");
     }
 
     public void onReloadButtonClicked(View view) {
-        ImageLoaderAsyncTask imageLoaderAsyncTask = new ImageLoaderAsyncTask();
-
-        Time time = new Time();
-        time.setToNow();
-        String url = String.format("http://www.bijint.com/assets/toppict/jp/pc/%02d%02d.jpg", time.hour, time.minute);
-        imageLoaderAsyncTask.execute(url);
     }
 }

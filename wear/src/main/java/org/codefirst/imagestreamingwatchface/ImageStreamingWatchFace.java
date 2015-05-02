@@ -44,12 +44,15 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 
+import java.io.InputStream;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -74,15 +77,18 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
         Log.d("TAG", "data changed");
 
         for (DataEvent event : dataEvents) {
-            if (event.getType() == DataEvent.TYPE_DELETED) {
-                Log.d("TAG", "DataItem deleted: " + event.getDataItem().getUri());
-            }
-            else if (event.getType() == DataEvent.TYPE_CHANGED) {
+             if (event.getType() == DataEvent.TYPE_CHANGED) {
                 Log.d("TAG", "DataItem changed: " + event.getDataItem().getUri());
 
-                DataMap dataMap = DataMap.fromByteArray(event.getDataItem().getData());
-                byte[] data = dataMap.getByteArray("image");
-                mBackgroundBitmap = BitmapFactory.decodeByteArray(data, 0, data.length, new BitmapFactory.Options());
+                DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
+                Asset image = dataMapItem.getDataMap().getAsset("image");
+                if (image == null) {
+                    Log.d("TAG", "Error: image is null");
+                    return;
+                }
+                InputStream assetInputStream = Wearable.DataApi.getFdForAsset(mGoogleApiClient, image).await().getInputStream();
+                mBackgroundBitmap = BitmapFactory.decodeStream(assetInputStream);
+                Log.d("TAG", "Set background bitmap");
             }
         }
     }
@@ -286,14 +292,19 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
 
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
-            // Draw background
+            Log.d("ImageStreamingWatchFace", "Drawing backgrond");
+
             if (isInAmbientMode()) {
                 canvas.drawRect(0, 0, bounds.width(), bounds.height(), mBackgroundPaint);
             }
             else {
-
                 if (mBackgroundBitmap != null) {
-                    Bitmap bitmap = Bitmap.createScaledBitmap(mBackgroundBitmap, bounds.width(), bounds.height(), false);
+                    final double ratio = (double)bounds.height() / mBackgroundBitmap.getHeight();
+                    int width = (int)(mBackgroundBitmap.getWidth() * ratio);
+                    width += (4 - width % 4);
+                    final int height = bounds.height();
+
+                    Bitmap bitmap = Bitmap.createScaledBitmap(mBackgroundBitmap, width, height, false);
                     canvas.drawBitmap(bitmap, 0, 0, null);
                 }
                 else {

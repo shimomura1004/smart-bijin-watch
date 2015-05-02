@@ -15,6 +15,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.PutDataMapRequest;
@@ -25,6 +26,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ImageLoaderService extends Service
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -33,6 +37,7 @@ public class ImageLoaderService extends Service
 
     private class ImageLoaderAsyncTask extends AsyncTask<String, Void, Bitmap> {
         GoogleApiClient mGoogleApiClient;
+
         public ImageLoaderAsyncTask(GoogleApiClient googleApiClient) {
             mGoogleApiClient = googleApiClient;
         }
@@ -51,34 +56,30 @@ public class ImageLoaderService extends Service
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             if (bitmap != null) {
-                Toast.makeText(getApplicationContext(), "downloaded image!", Toast.LENGTH_LONG).show();
-
                 // convert bitmap to byte array
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                Asset image = Asset.createFromBytes(stream.toByteArray());
                 // store with DataLayer API
                 PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/image");
                 DataMap dataMap = dataMapRequest.getDataMap();
-                dataMap.putByteArray("image", stream.toByteArray());
+                dataMap.putAsset("image", image);
+                Log.d("ImageLoaderService", "Image: " + stream.toByteArray().toString());
 
                 PutDataRequest request = dataMapRequest.asPutDataRequest();
                 PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
-
-                Toast.makeText(getApplicationContext(), "image store requested!", Toast.LENGTH_LONG).show();
 
                 pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                     @Override
                     public void onResult(DataApi.DataItemResult dataItemResult) {
                         Log.d("TAG", "onResult: " + dataItemResult.getStatus());
-
-                        Toast.makeText(getApplicationContext(), "image stored!", Toast.LENGTH_LONG).show();
                     }
                 });
             }
         }
     }
 
+    Timer mTimer;
     GoogleApiClient mGoogleApiClient;
     ImageLoaderAsyncTask mImageLoaderAsyncTask;
 
@@ -94,17 +95,26 @@ public class ImageLoaderService extends Service
                 .build();
         mGoogleApiClient.connect();
 
-        Time time = new Time();
-        time.setToNow();
-        String url = String.format("http://www.bijint.com/assets/toppict/2013jp/t1/%02d%02d.jpg", time.hour, time.minute);
-        mImageLoaderAsyncTask = new ImageLoaderAsyncTask(mGoogleApiClient);
-        mImageLoaderAsyncTask.execute(url);
+        mTimer = new Timer();
+        mTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Time time = new Time();
+                time.setToNow();
+                String url = String.format("http://www.bijint.com/assets/toppict/jp/pc/%02d%02d.jpg", time.hour, time.minute);
+
+                Log.d("ImageLoaderService", "Accessing: " + url);
+                mImageLoaderAsyncTask = new ImageLoaderAsyncTask(mGoogleApiClient);
+                mImageLoaderAsyncTask.execute(url);
+            }
+        }, 0, 30 * 1000);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
+        mTimer.cancel();
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
         }
