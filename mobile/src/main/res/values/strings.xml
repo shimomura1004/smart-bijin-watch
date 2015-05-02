@@ -1,7 +1,141 @@
 <resources>
     <string name="app_name">ImageStreamingWatchFace</string>
 
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="reload">Reload</string>
+
+    <string-array name="image_source_values">
+        <item>美人時計全国版</item>
+        <item>奈良版</item>
+        <item>石川版</item>
+        <item>福井版</item>
+        <item>沖縄版</item>
+        <item>北海道版</item>
+        <item>東京版</item>
+        <item>千葉版</item>
+        <item>群馬版</item>
+        <item>熊本版</item>
+        <item>兵庫版</item>
+        <item>愛知版</item>
+        <item>長崎版</item>
+        <item>佐賀版</item>
+        <item>宮城版</item>
+        <item>栃木版</item>
+        <item>鹿児島版</item>
+        <item>埼玉版</item>
+        <item>岩手版</item>
+        <item>香川版</item>
+        <item>秋田版</item>
+        <item>広島版</item>
+        <item>大阪版</item>
+        <item>山梨版</item>
+        <item>長野版</item>
+        <item>宮崎版</item>
+        <item>新潟版</item>
+        <item>神奈川版</item>
+        <item>京都版</item>
+        <item>青森版</item>
+        <item>福岡版</item>
+        <item>岡山版</item>
+        <item>山口版</item>
+        <item>茨城版</item>
+        <item>鳥取版</item>
+        <item>静岡版</item>
+        <item>美男時計（京都版）</item>
+        <item>ジュニア時計</item>
+        <item>美男時計 in 韓流ぴあ</item>
+        <item>美魔女時計</item>
+        <item>十勝キッズ時計</item>
+        <item>サーキット時計</item>
+        <item>早稲田スタイル時計</item>
+        <item>美人時計全国版2011</item>
+        <item>Photo studio×キッズ時計</item>
+        <item>ヘアスタイル時計</item>
+        <item>美人時計全国版2012</item>
+        <item>美男時計</item>
+        <item>F・O・インターナショナル×キッズ時計</item>
+        <item>メガネ時計</item>
+        <item>マッチョ時計 for ラグビー</item>
+        <item>VIVI版</item>
+        <item>ぽちゃカワ時計</item>
+        <item>キッズ時計</item>
+        <item>美男時計（鹿児島版）</item>
+        <item>マスク美人</item>
+        <item>BABYDOLL × I LOVE mama ×Primama × キッズ時計</item>
+        <item>SARA版</item>
+        <item>花嫁時計</item>
+        <item>パナホーム兵庫ファミリー時計</item>
+        <item>美人時計全国版2013</item>
+        <item>Thailand</item>
+        <item>Taiwan</item>
+        <item>Hawaii</item>
+        <item>Jakarta</item>
+    </string-array>
+
+    <string-array name="source_url_values">
+        <item>http://www.bijint.com/assets/toppict/jp/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/nara/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/kanazawa/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/fukui/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/okinawa/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/hokkaido/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/tokyo/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/chiba/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/gunma/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/kumamoto/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/kobe/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/nagoya/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/nagasaki/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/saga/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/sendai/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/tochigi/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/kagoshima/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/saitama/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/iwate/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/kagawa/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/akita/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/hiroshima/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/osaka/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/yamanashi/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/nagano/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/miyazaki/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/niigata/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/kanagawa/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/kyoto/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/aomori/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/fukuoka/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/okayama/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/yamaguchi/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/ibaraki/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/tottori/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/shizuoka/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/binan-kyoto/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/junior2/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/binan_hanryupia/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/bimajo/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/tokachi-kids02/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/cc/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/wasedastyle/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/2011jp/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/kids-photostudio/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/hairstyle/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/2012jp/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/binan/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/kids-fo/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/megane/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/macho/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/vivi/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/pochacawa/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/kids/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/binan-kagoshima/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/mask-bijin/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/kids-babydoll/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/sara/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/hanayome/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/panahome-hyogo/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/2013jp/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/thailand/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/taiwan/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/hawaii/pc/%1$02d%2$02d.jpg</item>
+        <item>http://www.bijint.com/assets/toppict/jakarta/pc/%1$02d%2$02d.jpg</item>
+    </string-array>
 </resources>
