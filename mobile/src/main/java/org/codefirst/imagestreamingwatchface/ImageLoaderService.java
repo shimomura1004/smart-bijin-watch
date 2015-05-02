@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.text.format.Time;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -26,20 +25,37 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class ImageLoaderService extends Service
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-    public ImageLoaderService() {
-    }
+
+    private static final String TAG = "ImageLoaderService";
+    private static final String SOURCE_URL = "http://www.bijint.com/assets/toppict/jp/pc/%02d%02d.jpg";
 
     private class ImageLoaderAsyncTask extends AsyncTask<String, Void, Bitmap> {
-        GoogleApiClient mGoogleApiClient;
+        protected Asset convertBitmapToAsset(Bitmap bitmap) {
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            return Asset.createFromBytes(stream.toByteArray());
+        }
 
-        public ImageLoaderAsyncTask(GoogleApiClient googleApiClient) {
-            mGoogleApiClient = googleApiClient;
+        protected void syncAsset(String path, String key, Asset asset) {
+            PutDataMapRequest dataMapRequest = PutDataMapRequest.create(path);
+            DataMap dataMap = dataMapRequest.getDataMap();
+            dataMap.putAsset(key, asset);
+
+            PutDataRequest request = dataMapRequest.asPutDataRequest();
+            PendingResult<DataApi.DataItemResult> pendingResult =
+                    Wearable.DataApi.putDataItem(mGoogleApiClient, request);
+
+            pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                @Override
+                public void onResult(DataApi.DataItemResult dataItemResult) {
+                    Log.d(TAG, "onResult: " + dataItemResult.getStatus());
+                }
+            });
         }
 
         @Override
@@ -56,32 +72,13 @@ public class ImageLoaderService extends Service
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             if (bitmap != null) {
-                // convert bitmap to byte array
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                Asset image = Asset.createFromBytes(stream.toByteArray());
-                // store with DataLayer API
-                PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/image");
-                DataMap dataMap = dataMapRequest.getDataMap();
-                dataMap.putAsset("image", image);
-                Log.d("ImageLoaderService", "Image: " + stream.toByteArray().toString());
-
-                PutDataRequest request = dataMapRequest.asPutDataRequest();
-                PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
-
-                pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-                    @Override
-                    public void onResult(DataApi.DataItemResult dataItemResult) {
-                        Log.d("TAG", "onResult: " + dataItemResult.getStatus());
-                    }
-                });
+                syncAsset("/image", "image", convertBitmapToAsset(bitmap));
             }
         }
     }
 
-    Timer mTimer;
     GoogleApiClient mGoogleApiClient;
-    ImageLoaderAsyncTask mImageLoaderAsyncTask;
+    Timer mTimer;
 
     @Override
     public void onCreate() {
@@ -101,11 +98,10 @@ public class ImageLoaderService extends Service
             public void run() {
                 Time time = new Time();
                 time.setToNow();
-                String url = String.format("http://www.bijint.com/assets/toppict/jp/pc/%02d%02d.jpg", time.hour, time.minute);
+                String url = String.format(SOURCE_URL, time.hour, time.minute);
 
-                Log.d("ImageLoaderService", "Accessing: " + url);
-                mImageLoaderAsyncTask = new ImageLoaderAsyncTask(mGoogleApiClient);
-                mImageLoaderAsyncTask.execute(url);
+                Log.d(TAG, "Accessing: " + url);
+                (new ImageLoaderAsyncTask()).execute(url);
             }
         }, 0, 30 * 1000);
     }
@@ -122,17 +118,17 @@ public class ImageLoaderService extends Service
 
     @Override
     public void onConnected(Bundle bundle) {
-        Log.d("TAG", "onConnected");
+        Log.d(TAG, "onConnected");
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.d("TAG", "onConnectionSuspended");
+        Log.d(TAG, "onConnectionSuspended");
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.e("TAG", "onConnectionFailed: " + connectionResult);
+        Log.e(TAG, "onConnectionFailed: " + connectionResult);
     }
 
     @Override

@@ -40,6 +40,8 @@ public class MainActivity extends Activity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         DataApi.DataListener {
 
+    private static final String TAG = "MainActivity";
+
     GoogleApiClient mGoogleApiClient;
 
     @Override
@@ -75,7 +77,6 @@ public class MainActivity extends Activity
         super.onDestroy();
 
         stopService(new Intent(MainActivity.this, ImageLoaderService.class));
-        Log.d("TAG", "Stopped service");
     }
 
     @Override
@@ -102,29 +103,25 @@ public class MainActivity extends Activity
 
     @Override
     public void onConnected(Bundle bundle) {
-        Log.d("MainActivity", "Connected");
         Wearable.DataApi.addListener(mGoogleApiClient, this);
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.d("MainActivity", "Suspended");
         Wearable.DataApi.removeListener(mGoogleApiClient, this);
     }
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
-        Log.d("TAG", "data changed!!!");
-
         for (DataEvent event : dataEvents) {
             if (event.getType() == DataEvent.TYPE_CHANGED) {
-                Log.d("TAG", "DataItem changed: " + event.getDataItem().getUri());
-
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
                 Asset image = dataMapItem.getDataMap().getAsset("image");
+
                 if (image == null) {
-                    return;
+                    continue;
                 }
+
                 InputStream assetInputStream = Wearable.DataApi.getFdForAsset(mGoogleApiClient, image).await().getInputStream();
                 final Bitmap bitmap = BitmapFactory.decodeStream(assetInputStream);
 
@@ -141,7 +138,7 @@ public class MainActivity extends Activity
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.d("TAG", "Error: connection failed");
+        Log.d(TAG, "Error: connection failed");
     }
 
     public void onReloadButtonClicked(View view) {
