@@ -16,7 +16,6 @@
 
 package org.codefirst.imagestreamingwatchface;
 
-import android.app.Instrumentation;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -27,9 +26,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -39,8 +35,6 @@ import android.text.format.Time;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -48,7 +42,6 @@ import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
-import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 
@@ -59,36 +52,27 @@ import java.util.concurrent.TimeUnit;
 public class ImageStreamingWatchFace extends CanvasWatchFaceService
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         DataApi.DataListener {
-    private static final Typeface NORMAL_TYPEFACE =
-            Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
 
-    /**
-     * Update rate in milliseconds for interactive mode. We update once a second since seconds are
-     * displayed in interactive mode.
-     */
+    static final String TAG = "ImageStreamingWatchFace";
     private static final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(1);
-
 
     GoogleApiClient mGoogleApiClient;
     Bitmap mBackgroundBitmap;
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
-        Log.d("TAG", "data changed");
-
         for (DataEvent event : dataEvents) {
              if (event.getType() == DataEvent.TYPE_CHANGED) {
-                Log.d("TAG", "DataItem changed: " + event.getDataItem().getUri());
-
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
                 Asset image = dataMapItem.getDataMap().getAsset("image");
+
                 if (image == null) {
-                    Log.d("TAG", "Error: image is null");
+                    Log.d(TAG, "Error: image is null");
                     return;
                 }
+
                 InputStream assetInputStream = Wearable.DataApi.getFdForAsset(mGoogleApiClient, image).await().getInputStream();
                 mBackgroundBitmap = BitmapFactory.decodeStream(assetInputStream);
-                Log.d("TAG", "Set background bitmap");
             }
         }
     }
@@ -108,21 +92,17 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
 
     @Override
     public void onConnected(Bundle bundle) {
-        Log.d("TAG", "onConnected");
-        Toast.makeText(getApplicationContext(), "ON CONNECTED GOOGLE CLIENT!", Toast.LENGTH_LONG).show();
-
         Wearable.DataApi.addListener(mGoogleApiClient, this);
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.d("TAG", "onConnectionSuspended");
+        Log.d(TAG, "onConnectionSuspended");
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        Toast.makeText(getApplicationContext(), "CONNECTION FAILED!", Toast.LENGTH_LONG).show();
-        Log.e("TAG", "onConnectionFailed: " + connectionResult);
+        Log.e(TAG, "onConnectionFailed: " + connectionResult);
     }
 
 
@@ -158,23 +138,12 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
         };
 
         boolean mRegisteredTimeZoneReceiver = false;
-
-        Paint mBackgroundPaint;
-        Paint mTextPaint;
-
         boolean mAmbient;
-
-        Time mTime;
-
-        float mXOffset;
-        float mYOffset;
-
-        /**
-         * Whether the display supports fewer bits for each color in ambient mode. When true, we
-         * disable anti-aliasing in ambient mode.
-         */
         boolean mLowBitAmbient;
 
+        Paint mBackgroundPaint;
+
+        Time mTime;
 
         @Override
         public void onCreate(SurfaceHolder holder) {
@@ -186,13 +155,9 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
                     .setShowSystemUiTime(false)
                     .build());
             Resources resources = ImageStreamingWatchFace.this.getResources();
-            mYOffset = resources.getDimension(R.dimen.digital_y_offset);
 
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(resources.getColor(R.color.digital_background));
-
-            mTextPaint = new Paint();
-            mTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
 
             mTime = new Time();
         }
@@ -201,14 +166,6 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
         public void onDestroy() {
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             super.onDestroy();
-        }
-
-        private Paint createTextPaint(int textColor) {
-            Paint paint = new Paint();
-            paint.setColor(textColor);
-            paint.setTypeface(NORMAL_TYPEFACE);
-            paint.setAntiAlias(true);
-            return paint;
         }
 
         @Override
@@ -253,13 +210,6 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
 
             // Load resources that have alternate values for round watches.
             Resources resources = ImageStreamingWatchFace.this.getResources();
-            boolean isRound = insets.isRound();
-            mXOffset = resources.getDimension(isRound
-                    ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
-            float textSize = resources.getDimension(isRound
-                    ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
-
-            mTextPaint.setTextSize(textSize);
         }
 
         @Override
@@ -279,9 +229,9 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
             super.onAmbientModeChanged(inAmbientMode);
             if (mAmbient != inAmbientMode) {
                 mAmbient = inAmbientMode;
-                if (mLowBitAmbient) {
-                    mTextPaint.setAntiAlias(!inAmbientMode);
-                }
+//                if (mLowBitAmbient) {
+//                    mTextPaint.setAntiAlias(!inAmbientMode);
+//                }
                 invalidate();
             }
 
@@ -294,26 +244,17 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
         public void onDraw(Canvas canvas, Rect bounds) {
             Log.d("ImageStreamingWatchFace", "Drawing backgrond");
 
-            if (isInAmbientMode()) {
-                canvas.drawRect(0, 0, bounds.width(), bounds.height(), mBackgroundPaint);
+            if (mBackgroundBitmap != null) {
+                final double ratio = (double)bounds.height() / mBackgroundBitmap.getHeight();
+                int width = (int) (mBackgroundBitmap.getWidth() * ratio);
+                width += (4 - width % 4);
+                final int height = bounds.height();
+
+                Bitmap bitmap = Bitmap.createScaledBitmap(mBackgroundBitmap, width, height, false);
+                canvas.drawBitmap(bitmap, 0, 0, null);
             }
             else {
-                if (mBackgroundBitmap != null) {
-                    final double ratio = (double)bounds.height() / mBackgroundBitmap.getHeight();
-                    int width = (int)(mBackgroundBitmap.getWidth() * ratio);
-                    width += (4 - width % 4);
-                    final int height = bounds.height();
-
-                    Bitmap bitmap = Bitmap.createScaledBitmap(mBackgroundBitmap, width, height, false);
-                    canvas.drawBitmap(bitmap, 0, 0, null);
-                }
-                else {
-                    Resources resources = ImageStreamingWatchFace.this.getResources();
-                    Drawable backgroundDrawable =
-                            resources.getDrawable(R.drawable.mickey, getTheme());
-                    Bitmap bitmap = ((BitmapDrawable)backgroundDrawable).getBitmap();
-                    canvas.drawBitmap(bitmap, 0, 0, null);
-                }
+                canvas.drawRect(0, 0, bounds.width(), bounds.height(), mBackgroundPaint);
             }
         }
 
@@ -328,10 +269,6 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
             }
         }
 
-        /**
-         * Returns whether the {@link #mUpdateTimeHandler} timer should be running. The timer should
-         * only run when we're visible and in interactive mode.
-         */
         private boolean shouldTimerBeRunning() {
             return isVisible() && !isInAmbientMode();
         }
