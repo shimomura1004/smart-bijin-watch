@@ -31,7 +31,7 @@ public class ClockAdapter extends BaseAdapter {
         mSourceTitleArray = sourceTitleArray;
         mSourceUrlArray = sourceUrlArray;
 
-        mBitmapCache = new LruCache<>(100);
+        mBitmapCache = new LruCache<String, Bitmap>(100);
     }
 
     @Override
@@ -52,9 +52,11 @@ public class ClockAdapter extends BaseAdapter {
     class ClockImageLoader extends AsyncTask<String, Void, Bitmap> {
         ImageView mImageView;
         String mUrl;
+        int mTag;
 
-        ClockImageLoader(ImageView imageView) {
+        ClockImageLoader(ImageView imageView, int tag) {
             mImageView = imageView;
+            mTag = tag;
         }
 
         @Override
@@ -73,7 +75,10 @@ public class ClockAdapter extends BaseAdapter {
         protected void onPostExecute(Bitmap bitmap) {
             if (bitmap != null) {
                 mBitmapCache.put(mUrl, bitmap);
-                mImageView.setImageBitmap(bitmap);
+
+                if (mImageView.getTag() == mTag) {
+                    mImageView.setImageBitmap(bitmap);
+                }
             }
         }
     }
@@ -93,10 +98,14 @@ public class ClockAdapter extends BaseAdapter {
         time.setToNow();
         final String url = String.format(mSourceUrlArray[i], "t1", time.hour, time.minute);
 
+        imageView.setTag(i);
+
         Bitmap bitmap = mBitmapCache.get(url);
         if (bitmap == null) {
-            ClockImageLoader clockImageLoader = new ClockImageLoader(imageView);
+            ClockImageLoader clockImageLoader = new ClockImageLoader(imageView, i);
             clockImageLoader.execute(url);
+
+            imageView.setImageResource(R.mipmap.ic_launcher);
         }
         else {
             imageView.setImageBitmap(bitmap);
