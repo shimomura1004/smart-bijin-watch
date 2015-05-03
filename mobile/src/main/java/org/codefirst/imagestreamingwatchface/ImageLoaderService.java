@@ -30,12 +30,6 @@ public class ImageLoaderService extends WearableListenerService
     private static String SOURCE_URL = "http://www.bijint.com/assets/toppict/jp/%s/%02d%02d.jpg";
 
     private class ImageLoaderAsyncTask extends AsyncTask<String, Void, Bitmap> {
-        protected Asset convertBitmapToAsset(Bitmap bitmap) {
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-            return Asset.createFromBytes(stream.toByteArray());
-        }
-
         @Override
         protected Bitmap doInBackground(String... url) {
             try {
@@ -50,7 +44,7 @@ public class ImageLoaderService extends WearableListenerService
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             if (bitmap != null) {
-                DataAPIUtil.syncAsset(mGoogleApiClient, "/image", "image", convertBitmapToAsset(bitmap));
+                DataAPIUtil.syncAsset(mGoogleApiClient, "/image", "image", bitmap);
             }
         }
     }

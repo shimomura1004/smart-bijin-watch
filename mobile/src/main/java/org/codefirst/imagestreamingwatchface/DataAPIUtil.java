@@ -1,5 +1,6 @@
 package org.codefirst.imagestreamingwatchface;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -11,8 +12,16 @@ import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
+import java.io.ByteArrayOutputStream;
+
 public class DataAPIUtil {
     private static final String TAG = "DataAPIUtil";
+
+    protected static Asset convertBitmapToAsset(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        return Asset.createFromBytes(stream.toByteArray());
+    }
 
     protected static void sync(GoogleApiClient googleApiClient, PutDataMapRequest dataMapRequest) {
         PutDataRequest request = dataMapRequest.asPutDataRequest();
@@ -24,7 +33,9 @@ public class DataAPIUtil {
         });
     }
 
-    public static void syncAsset(GoogleApiClient googleApiClient, String path, String key, Asset asset) {
+    public static void syncAsset(GoogleApiClient googleApiClient, String path, String key, Bitmap bitmap) {
+        Asset asset = convertBitmapToAsset(bitmap);
+
         PutDataMapRequest dataMapRequest = PutDataMapRequest.create(path);
         DataMap dataMap = dataMapRequest.getDataMap();
         dataMap.putAsset(key, asset);
