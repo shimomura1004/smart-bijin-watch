@@ -12,7 +12,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.Spinner;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -36,7 +35,6 @@ public class MainActivity extends Activity
     private static final String TAG = "MainActivity";
 
     GoogleApiClient mGoogleApiClient;
-    Spinner mImageSourceSpinner;
     GridView mClockGridView;
     ClockAdapter mClockAdapter;
     String[] mSourceTitleArray;
@@ -56,28 +54,25 @@ public class MainActivity extends Activity
 
         startService(new Intent(MainActivity.this, ImageLoaderService.class));
 
-        mImageSourceSpinner = (Spinner)findViewById(R.id.image_source_spinner);
         mSourceTitleArray = getResources().getStringArray(R.array.image_source_values);
         mSourceUrlArray = getResources().getStringArray(R.array.source_url_values);
 
-        mImageSourceSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                if (mGoogleApiClient.isConnected()) {
-                    final String url = mSourceUrlArray[i];
-                    DataAPIUtil.syncAsset(mGoogleApiClient, "/source", "url", url);
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
+        setTitle(mSourceTitleArray[0]);
 
         mClockGridView = (GridView)findViewById(R.id.gridView);
         mClockAdapter = new ClockAdapter(this, mSourceTitleArray, mSourceUrlArray);
         mClockGridView.setAdapter(mClockAdapter);
+        mClockGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if (mGoogleApiClient.isConnected()) {
+                    final String url = mSourceUrlArray[i];
+                    DataAPIUtil.syncAsset(mGoogleApiClient, "/source", "url", url);
+
+                    setTitle(mSourceTitleArray[i]);
+                }
+            }
+        });
     }
 
     @Override

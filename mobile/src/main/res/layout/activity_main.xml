@@ -12,24 +12,13 @@
         android:layout_centerHorizontal="true"
         android:id="@+id/linearLayout">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:layout_width="fill_parent"
-                android:layout_height="800px"
-                android:id="@+id/imageView"
-                android:cropToPadding="false"
-                android:scaleType="centerCrop"
-                android:layout_alignParentTop="true" />
-
-            <Spinner
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/image_source_spinner"
-                android:entries="@array/image_source_values" />
-        </RelativeLayout>
+        <ImageView
+            android:layout_width="fill_parent"
+            android:layout_height="800px"
+            android:id="@+id/imageView"
+            android:cropToPadding="false"
+            android:scaleType="centerCrop"
+            android:layout_alignParentTop="true" />
 
         <LinearLayout
             android:orientation="vertical"
