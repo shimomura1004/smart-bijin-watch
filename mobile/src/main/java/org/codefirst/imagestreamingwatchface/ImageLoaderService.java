@@ -27,7 +27,7 @@ public class ImageLoaderService extends WearableListenerService
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "ImageLoaderService";
-    private static String SOURCE_URL = "http://www.bijint.com/assets/toppict/jp/pc/%02d%02d.jpg";
+    private static String SOURCE_URL = "http://www.bijint.com/assets/toppict/jp/%s/%02d%02d.jpg";
 
     private class ImageLoaderAsyncTask extends AsyncTask<String, Void, Bitmap> {
         protected Asset convertBitmapToAsset(Bitmap bitmap) {
@@ -69,7 +69,7 @@ public class ImageLoaderService extends WearableListenerService
             public void run() {
                 Time time = new Time();
                 time.setToNow();
-                String url = String.format(SOURCE_URL, time.hour, time.minute);
+                String url = String.format(SOURCE_URL, "pc", time.hour, time.minute);
 
                 Log.d(TAG, "Accessing: " + url);
                 (new ImageLoaderAsyncTask()).execute(url);

@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
@@ -36,6 +37,8 @@ public class MainActivity extends Activity
 
     GoogleApiClient mGoogleApiClient;
     Spinner mImageSourceSpinner;
+    GridView mClockGridView;
+    String[] mSourceTitleArray;
     String[] mSourceUrlArray;
 
     @Override
@@ -53,9 +56,10 @@ public class MainActivity extends Activity
         startService(new Intent(MainActivity.this, ImageLoaderService.class));
 
         mImageSourceSpinner = (Spinner)findViewById(R.id.image_source_spinner);
+        mSourceTitleArray = getResources().getStringArray(R.array.image_source_values);
         mSourceUrlArray = getResources().getStringArray(R.array.source_url_values);
 
-        mImageSourceSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+        mImageSourceSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 if (mGoogleApiClient.isConnected()) {
@@ -69,6 +73,9 @@ public class MainActivity extends Activity
 
             }
         });
+
+        mClockGridView = (GridView)findViewById(R.id.gridView);
+        mClockGridView.setAdapter(new ClockAdapter(this, mSourceTitleArray, mSourceUrlArray));
     }
 
     @Override
@@ -88,8 +95,6 @@ public class MainActivity extends Activity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        stopService(new Intent(MainActivity.this, ImageLoaderService.class));
     }
 
     @Override
