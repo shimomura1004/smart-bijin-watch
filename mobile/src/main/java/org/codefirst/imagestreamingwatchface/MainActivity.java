@@ -6,8 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -56,8 +54,6 @@ public class MainActivity extends Activity
 
         mSourceTitleArray = getResources().getStringArray(R.array.image_source_values);
         mSourceUrlArray = getResources().getStringArray(R.array.source_url_values);
-
-        setTitle(mSourceTitleArray[0]);
 
         mClockGridView = (GridView)findViewById(R.id.gridView);
         mClockAdapter = new ClockAdapter(this, mSourceTitleArray, mSourceUrlArray);
@@ -115,19 +111,39 @@ public class MainActivity extends Activity
         });
     }
 
+    private void setTitleFromCache(final DataItem dataItem) {
+        DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
+        final String url = dataMapItem.getDataMap().getString("url");
+
+        for (int i = 0 ; i < mSourceUrlArray.length; i++) {
+            if (mSourceUrlArray[i].equals(url)) {
+                setTitle(mSourceTitleArray[i]);
+                return;
+            }
+        }
+    }
+
     @Override
-    public void onConnected(Bundle bundle) {
+    public void onConnected(final Bundle bundle) {
         Wearable.DataApi.addListener(mGoogleApiClient, this);
 
         Wearable.DataApi.getDataItems(mGoogleApiClient).setResultCallback(new ResultCallback<DataItemBuffer>() {
             @Override
             public void onResult(DataItemBuffer dataItems) {
                 for (final DataItem dataItem : dataItems) {
-                    if (dataItem.getUri().getPath().equals("/image")) {
-                        setImageFromCache(dataItem);
-                        mClockAdapter.notifyDataSetChanged();
+                    final String path = dataItem.getUri().getPath();
+                    switch(path) {
+                        case "/image":
+                            setImageFromCache(dataItem);
+                            break;
+                        case "/source":
+                            setTitleFromCache(dataItem);
+                            break;
+                        default:
+                            break;
                     }
                 }
+                mClockAdapter.notifyDataSetChanged();
             }
         });
     }

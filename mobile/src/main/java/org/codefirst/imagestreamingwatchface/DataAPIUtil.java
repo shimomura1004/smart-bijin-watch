@@ -33,6 +33,7 @@ public class DataAPIUtil {
         });
     }
 
+    // todo: rename syncAsset to syncWatchFaceImage
     public static void syncAsset(GoogleApiClient googleApiClient, String path, String key, Bitmap bitmap) {
         Asset asset = convertBitmapToAsset(bitmap);
 
@@ -43,6 +44,7 @@ public class DataAPIUtil {
         sync(googleApiClient, dataMapRequest);
     }
 
+    // todo: rename syncAsset to syncSourceUrl
     public static void syncAsset(GoogleApiClient googleApiClient, String path, String key, String str) {
         PutDataMapRequest dataMapRequest = PutDataMapRequest.create(path);
         DataMap dataMap = dataMapRequest.getDataMap();

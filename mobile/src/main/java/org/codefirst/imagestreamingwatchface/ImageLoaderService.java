@@ -9,9 +9,12 @@ import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataItemBuffer;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
@@ -82,8 +85,6 @@ public class ImageLoaderService extends WearableListenerService
                 .addApi(Wearable.API)
                 .build();
         mGoogleApiClient.connect();
-
-        restartImageLoader();
     }
 
     @Override
@@ -99,6 +100,21 @@ public class ImageLoaderService extends WearableListenerService
     @Override
     public void onConnected(Bundle bundle) {
         Wearable.DataApi.addListener(mGoogleApiClient, this);
+
+        // todo: remove duplicate code
+        Wearable.DataApi.getDataItems(mGoogleApiClient).setResultCallback(new ResultCallback<DataItemBuffer>() {
+            @Override
+            public void onResult(DataItemBuffer dataItems) {
+                for (final DataItem dataItem : dataItems) {
+                    final String path = dataItem.getUri().getPath();
+                    if (path.equals("/source")) {
+                        DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
+                        SOURCE_URL = dataMapItem.getDataMap().getString("url");
+                    }
+                }
+                restartImageLoader();
+            }
+        });
     }
 
     @Override
