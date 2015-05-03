@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.text.format.Time;
+import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,11 +23,15 @@ public class ClockAdapter extends BaseAdapter {
     protected String[] mSourceTitleArray;
     protected String[] mSourceUrlArray;
 
+    protected LruCache<String, Bitmap> mBitmapCache;
+
     ClockAdapter(Context context, String[] sourceTitleArray, String[] sourceUrlArray) {
         mContext = context;
         mLayoutInflater = LayoutInflater.from(context);
         mSourceTitleArray = sourceTitleArray;
         mSourceUrlArray = sourceUrlArray;
+
+        mBitmapCache = new LruCache<>(100);
     }
 
     @Override
@@ -46,6 +51,7 @@ public class ClockAdapter extends BaseAdapter {
 
     class ClockImageLoader extends AsyncTask<String, Void, Bitmap> {
         ImageView mImageView;
+        String mUrl;
 
         ClockImageLoader(ImageView imageView) {
             mImageView = imageView;
@@ -54,7 +60,8 @@ public class ClockAdapter extends BaseAdapter {
         @Override
         protected Bitmap doInBackground(String... url) {
             try {
-                InputStream stream = new URL(url[0]).openStream();
+                mUrl = url[0];
+                InputStream stream = new URL(mUrl).openStream();
                 return BitmapFactory.decodeStream(stream);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -65,6 +72,7 @@ public class ClockAdapter extends BaseAdapter {
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             if (bitmap != null) {
+                mBitmapCache.put(mUrl, bitmap);
                 mImageView.setImageBitmap(bitmap);
             }
         }
@@ -77,15 +85,22 @@ public class ClockAdapter extends BaseAdapter {
         }
 
         TextView textView = (TextView)view.findViewById(R.id.textView);
+        ImageView imageView = (ImageView)view.findViewById(R.id.imageView7);
+
         textView.setText(mSourceTitleArray[i]);
 
         Time time = new Time();
         time.setToNow();
-        ImageView imageView = (ImageView)view.findViewById(R.id.imageView7);
-
         final String url = String.format(mSourceUrlArray[i], "t1", time.hour, time.minute);
-        ClockImageLoader clockImageLoader = new ClockImageLoader(imageView);
-        clockImageLoader.execute(url);
+
+        Bitmap bitmap = mBitmapCache.get(url);
+        if (bitmap == null) {
+            ClockImageLoader clockImageLoader = new ClockImageLoader(imageView);
+            clockImageLoader.execute(url);
+        }
+        else {
+            imageView.setImageBitmap(bitmap);
+        }
 
         return view;
     }
