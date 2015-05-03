@@ -147,6 +147,7 @@ public class MainActivity extends Activity
                 for (final DataItem dataItem : dataItems) {
                     if (dataItem.getUri().getPath().equals("/image")) {
                         setImageFromCache(dataItem);
+                        mClockAdapter.notifyDataSetChanged();
                     }
                 }
             }
