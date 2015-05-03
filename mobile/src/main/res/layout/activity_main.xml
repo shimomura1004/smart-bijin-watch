@@ -13,8 +13,9 @@
         android:id="@+id/linearLayout">
 
         <ImageView
-            android:layout_width="fill_parent"
-            android:layout_height="800px"
+            android:layout_width="match_parent"
+            android:layout_height="280dp"
+            android:layout_weight="0"
             android:id="@+id/imageView"
             android:cropToPadding="false"
             android:scaleType="centerCrop"
@@ -23,7 +24,8 @@
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_weight="1">
 
             <TextView
                 android:layout_width="wrap_content"
