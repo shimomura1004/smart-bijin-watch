@@ -38,6 +38,7 @@ public class MainActivity extends Activity
     GoogleApiClient mGoogleApiClient;
     Spinner mImageSourceSpinner;
     GridView mClockGridView;
+    ClockAdapter mClockAdapter;
     String[] mSourceTitleArray;
     String[] mSourceUrlArray;
 
@@ -75,7 +76,8 @@ public class MainActivity extends Activity
         });
 
         mClockGridView = (GridView)findViewById(R.id.gridView);
-        mClockGridView.setAdapter(new ClockAdapter(this, mSourceTitleArray, mSourceUrlArray));
+        mClockAdapter = new ClockAdapter(this, mSourceTitleArray, mSourceUrlArray);
+        mClockGridView.setAdapter(mClockAdapter);
     }
 
     @Override
@@ -184,6 +186,14 @@ public class MainActivity extends Activity
                 });
             }
         }
+
+        // also update thumbnails
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mClockAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
