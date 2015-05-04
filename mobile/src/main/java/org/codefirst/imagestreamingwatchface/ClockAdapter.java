@@ -98,18 +98,20 @@ public class ClockAdapter extends BaseAdapter {
         time.setToNow();
         final String url = String.format(mSourceUrlArray[i], "t1", time.hour, time.minute);
 
-        imageView.setTag(i);
-
         Bitmap bitmap = mBitmapCache.get(url);
         if (bitmap == null) {
             ClockImageLoader clockImageLoader = new ClockImageLoader(imageView, i);
             clockImageLoader.execute(url);
 
-            imageView.setImageResource(R.mipmap.ic_launcher);
+            if (imageView.getTag() != i) {
+                imageView.setImageResource(R.mipmap.ic_launcher);
+            }
         }
         else {
             imageView.setImageBitmap(bitmap);
         }
+
+        imageView.setTag(i);
 
         return view;
     }
