@@ -157,21 +157,10 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
             }
         };
 
-        final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                mTime.clear(intent.getStringExtra("time-zone"));
-                mTime.setToNow();
-            }
-        };
-
-        boolean mRegisteredTimeZoneReceiver = false;
         boolean mAmbient;
         boolean mLowBitAmbient;
 
         Paint mBackgroundPaint;
-
-        Time mTime;
 
         @Override
         public void onCreate(SurfaceHolder holder) {
@@ -186,8 +175,6 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
 
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(resources.getColor(R.color.digital_background));
-
-            mTime = new Time();
         }
 
         @Override
@@ -200,36 +187,9 @@ public class ImageStreamingWatchFace extends CanvasWatchFaceService
         public void onVisibilityChanged(boolean visible) {
             super.onVisibilityChanged(visible);
 
-            if (visible) {
-                registerReceiver();
-
-                // Update time zone in case it changed while we weren't visible.
-                mTime.clear(TimeZone.getDefault().getID());
-                mTime.setToNow();
-            } else {
-                unregisterReceiver();
-            }
-
             // Whether the timer should be running depends on whether we're visible (as well as
             // whether we're in ambient mode), so we may need to start or stop the timer.
             updateTimer();
-        }
-
-        private void registerReceiver() {
-            if (mRegisteredTimeZoneReceiver) {
-                return;
-            }
-            mRegisteredTimeZoneReceiver = true;
-            IntentFilter filter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
-            ImageStreamingWatchFace.this.registerReceiver(mTimeZoneReceiver, filter);
-        }
-
-        private void unregisterReceiver() {
-            if (!mRegisteredTimeZoneReceiver) {
-                return;
-            }
-            mRegisteredTimeZoneReceiver = false;
-            ImageStreamingWatchFace.this.unregisterReceiver(mTimeZoneReceiver);
         }
 
         @Override
